@@ -21,9 +21,18 @@ class UserResponse(BaseModel):
     email: str
     role: str
     is_active: bool
+    is_verified: bool
 
     class Config:
         from_attributes = True
+
+
+
+class UserRoleUpdate(BaseModel):
+
+    role: str
+
+
 
 class TokenResponse(BaseModel):
 

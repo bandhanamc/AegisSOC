@@ -70,4 +70,12 @@ def get_current_user(
         raise credentials_exception
 
 
+    # Block disabled users even if they have a valid JWT
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is inactive"
+        )
+
+
     return user

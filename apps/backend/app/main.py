@@ -15,22 +15,15 @@ from fastapi import FastAPI, Request
 from app.core.config import settings
 
 from app.api.auth import router as auth_router
-
 from app.api.assets import router as asset_router
-
 from app.api.vulnerabilities import router as vulnerability_router
-
 from app.api.scans import router as scan_router
-
 from app.api.uploads import router as upload_router
-
 from app.api.users import router as user_router
-
 from app.api.audit import router as audit_router
-
 from app.api.detection import router as detection_router
-
 from app.api.events import router as events_router
+from app.api.alerts import router as alerts_router
 
 from app.logging.logger import (
     app_logger,
@@ -49,20 +42,35 @@ app = FastAPI(
 # API ROUTERS
 # ==============================
 
-# Authentication APIs
-# Routes:
-# POST /auth/register
-# POST /auth/login
+# Authentication
 app.include_router(auth_router)
+
+# Asset Management
 app.include_router(asset_router)
+
+# Vulnerability Management
 app.include_router(vulnerability_router)
+
+# Scan Management
 app.include_router(scan_router)
+
+# Upload APIs
 app.include_router(upload_router)
+
+# User Management
 app.include_router(user_router)
+
+# Audit Logging
 app.include_router(audit_router)
+
+# Detection Rules
 app.include_router(detection_router)
+
+# Event Ingestion
 app.include_router(events_router)
 
+# Alerts
+app.include_router(alerts_router)
 
 
 @app.middleware("http")
@@ -93,7 +101,6 @@ async def request_logging(
     return response
 
 
-
 @app.on_event("startup")
 async def startup_event():
     """
@@ -103,7 +110,6 @@ async def startup_event():
     app_logger.info(
         "AegisSOC Backend started successfully"
     )
-
 
 
 @app.get("/api/v1/health")

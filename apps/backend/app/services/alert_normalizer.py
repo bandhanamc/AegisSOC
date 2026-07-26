@@ -1,77 +1,69 @@
+import re
+
+
 class AlertNormalizer:
     """
-    Normalize security alerts into behavior indicators.
+    Normalizes security alert text before MITRE mapping.
     """
 
-    def normalize(self, text: str):
 
-        text = text.lower()
+    def normalize(self, text):
 
+        if not text:
 
-        result = {
-            "processes": [],
-            "actions": [],
-            "objects": [],
-            "keywords": []
-        }
+            return ""
 
 
-        processes = [
-            "powershell",
-            "cmd",
-            "certutil",
-            "rundll32",
-            "wmic",
-            "bash",
-            "python"
-        ]
+        # Convert to lowercase
+
+        text = str(text).lower()
 
 
-        actions = [
-            "execute",
-            "download",
-            "upload",
-            "create",
-            "modify",
-            "inject",
-            "delete",
-            "encrypt"
-        ]
 
-
-        objects = [
-            "malware",
-            "payload",
-            "script",
-            "credential",
-            "token",
-            "registry",
-            "file"
-        ]
-
-
-        for item in processes:
-            if item in text:
-                result["processes"].append(item)
-
-
-        for item in actions:
-            if item in text:
-                result["actions"].append(item)
-
-
-        for item in objects:
-            if item in text:
-                result["objects"].append(item)
-
-
-        result["keywords"] = (
-            result["processes"]
-            +
-            result["actions"]
-            +
-            result["objects"]
+        # Remove special characters
+        text = re.sub(
+            r"[^a-z0-9\s\._-]",
+            " ",
+            text
         )
 
 
-        return result
+
+        # Replace multiple spaces
+
+        text = re.sub(
+            r"\s+",
+            " ",
+            text
+        )
+
+
+
+        # Remove duplicate words
+
+        words = text.split()
+
+
+        unique_words = []
+
+
+        seen = set()
+
+
+        for word in words:
+
+            if word not in seen:
+
+                unique_words.append(word)
+
+                seen.add(word)
+
+
+
+        normalized_text = " ".join(
+            unique_words
+        )
+
+
+
+        return normalized_text

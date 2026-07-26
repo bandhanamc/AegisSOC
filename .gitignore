@@ -1,0 +1,187 @@
+# ==================================
+# AegisSOC Security Project
+# Git Ignore Rules
+# ==================================
+
+
+# ==================================
+# Environment Files / Secrets
+# ==================================
+
+.env
+.env.*
+!.env.example
+
+apps/backend/.env
+
+
+# ==================================
+# Python
+# ==================================
+
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+*.egg-info/
+.eggs/
+
+
+# ==================================
+# Virtual Environments
+# ==================================
+
+venv/
+.venv/
+env/
+
+apps/backend/.venv/
+
+
+# ==================================
+# Node / Frontend
+# ==================================
+
+node_modules/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+.next/
+.cache/
+.parcel-cache/
+
+
+# ==================================
+# Build Files
+# ==================================
+
+dist/
+build/
+
+
+# ==================================
+# IDE
+# ==================================
+
+.vscode/*
+
+!.vscode/extensions.json
+!.vscode/settings.json
+
+.idea/
+
+
+# ==================================
+# Operating System Files
+# ==================================
+
+.DS_Store
+Thumbs.db
+
+
+# ==================================
+# Logs
+# ==================================
+
+logs/
+*.log
+
+apps/backend/logs/
+
+
+# ==================================
+# Database Files
+# ==================================
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Database backups only
+*.dump
+*.backup
+*.sql.bak
+
+
+# ==================================
+# Temporary Files
+# ==================================
+
+temp/
+tmp/
+
+apps/backend/temp/
+
+*.local
+*.bak
+*.swp
+
+
+# ==================================
+# Secrets / Certificates
+# ==================================
+
+*.pem
+*.key
+*.crt
+*.secret
+
+
+# ==================================
+# Docker
+# ==================================
+
+docker-compose.override.yml
+
+# PostgreSQL Docker images / OCI artifacts
+infrastructure/docker/postgres/
+
+
+# ==================================
+# Test Coverage
+# ==================================
+
+.coverage
+htmlcov/
+
+
+# ==================================
+# AI Models
+# ==================================
+
+models/
+
+*.bin
+*.gguf
+
+
+# ==================================
+# Security Scan Reports
+# ==================================
+
+reports/
+
+# Nessus reports
+*.nessus
+
+# Uploaded scan files
+apps/backend/uploads/
+
+
+# ==================================
+# Alembic Cache
+# ==================================
+
+alembic/__pycache__/
+
+
+# ==================================
+# Runtime Data
+# ==================================
+
+data/runtime/
+data/uploads/

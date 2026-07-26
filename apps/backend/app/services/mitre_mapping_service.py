@@ -3,13 +3,43 @@ from sqlalchemy.orm import Session
 from app.models.mitre_mapping import MitreMapping
 from app.models.mitre_technique import MitreTechnique
 
+from app.services.alert_normalizer import AlertNormalizer
+from app.services.mitre_semantic_engine import MitreSemanticEngine
+from app.services.mitre_confidence_engine import MitreConfidenceEngine
 from app.services.technique_matcher import TechniqueMatcher
 
 
+
 class MitreMappingService:
+    """
+    AI assisted MITRE ATT&CK mapping engine.
+
+    Flow:
+
+    Alert
+      |
+    Normalization
+      |
+    Keyword Matching
+      |
+    Semantic Similarity
+      |
+    Confidence Calculation
+      |
+    MITRE Mapping
+    """
+
 
     def __init__(self):
-        self.matcher = TechniqueMatcher()
+
+        self.normalizer = AlertNormalizer()
+
+        self.semantic_engine = MitreSemanticEngine()
+
+        self.confidence_engine = MitreConfidenceEngine()
+
+        self.keyword_engine = TechniqueMatcher()
+
 
 
     def map_alert(
@@ -19,16 +49,29 @@ class MitreMappingService:
         text: str
     ):
 
-        #
-        # Load MITRE ATT&CK techniques
-        #
+
+        # -----------------------------
+        # Normalize alert
+        # -----------------------------
+
+        normalized = (
+            self.normalizer
+            .normalize(text)
+        )
+
+
+
+        # -----------------------------
+        # Load MITRE techniques
+        # -----------------------------
+
         techniques = (
             db.query(MitreTechnique)
             .all()
         )
 
 
-        technique_data = []
+        technique_data=[]
 
 
         for technique in techniques:
@@ -42,141 +85,132 @@ class MitreMappingService:
                         technique.name,
 
                     "description":
-                        technique.description,
-
-                    "detection":
-                        technique.detection
+                        technique.description
                 }
             )
 
 
-        #
-        # Match alert behavior
-        #
-        matches = self.matcher.match(
-            text,
-            technique_data
+
+        # -----------------------------
+        # Keyword matching
+        # -----------------------------
+
+        keyword_matches = (
+            self.keyword_engine.match(
+                text,
+                technique_data
+            )
         )
 
 
-        #
-        # Remove parent techniques
-        # Example:
-        # Keep T1059.001 PowerShell
-        # Remove T1059 Command and Scripting Interpreter
-        #
-        subtechnique_parents = set()
+
+        keyword_map={}
 
 
-        for item in matches:
+        for item in keyword_matches:
 
-            technique_id = item.get(
-                "technique_id"
-            )
-
-            if technique_id and "." in technique_id:
-
-                parent_id = (
-                    technique_id.split(".")[0]
-                )
-
-                subtechnique_parents.add(
-                    parent_id
-                )
-
-
-        matches = [
-            item
-            for item in matches
-            if not (
+            keyword_map[
                 item["technique_id"]
-                in subtechnique_parents
+            ] = item["score"]
+
+
+
+        # -----------------------------
+        # Semantic matching
+        # -----------------------------
+
+        semantic_matches = (
+            self.semantic_engine.match(
+                text,
+                technique_data
             )
-        ]
+        )
 
 
-        #
-        # Keep only top 3 techniques
-        #
-        matches = matches[:3]
+
+        final=[]
 
 
-        saved = []
+        for item in semantic_matches:
 
 
-        for item in matches:
+            technique = item["technique"]
 
 
-            technique = (
-                db.query(MitreTechnique)
-                .filter(
-                    MitreTechnique.technique_id
-                    ==
-                    item["technique_id"]
+            technique_id = (
+                technique["technique_id"]
+            )
+
+
+            keyword_score = (
+                keyword_map.get(
+                    technique_id,
+                    0
                 )
-                .first()
             )
 
 
-            if not technique:
-                continue
 
-
-
-            #
-            # Avoid duplicate mapping
-            #
-            existing = (
-                db.query(MitreMapping)
-                .filter(
-                    MitreMapping.alert_id
-                    ==
-                    alert_id,
-
-                    MitreMapping.technique_id
-                    ==
-                    technique.technique_id
+            confidence = (
+                self.confidence_engine.calculate(
+                    keyword_score / 10,
+                    item["semantic_score"]
                 )
-                .first()
             )
 
 
-            if existing:
-                continue
 
+            final.append(
+                {
+                    "technique": technique,
+                    "confidence": confidence
+                }
+            )
+
+
+
+        final.sort(
+            key=lambda x:
+                x["confidence"]["score"],
+            reverse=True
+        )
+
+
+
+        saved=[]
+
+
+
+        for item in final[:5]:
+
+
+            technique=item["technique"]
 
 
             mapping = MitreMapping(
 
                 alert_id=alert_id,
 
-
                 technique_id=
-                    technique.technique_id,
-
+                    technique["technique_id"],
 
                 technique_name=
-                    technique.name,
-
+                    technique["name"],
 
                 tactic=
-                    technique.tactic,
-
+                    technique.get(
+                        "tactic",
+                        "unknown"
+                    ),
 
                 confidence=
-                    "HIGH"
-                    if item.get("score", 0) >= 10
-                    else "MEDIUM",
+                    item["confidence"]["level"],
 
-
-                ai_generated=False,
-
+                ai_generated=True,
 
                 reasoning=
-                    item.get(
-                        "reason",
-                        "Behavior based MITRE ATT&CK matching"
-                    )
+                    "AI semantic similarity + keyword correlation"
+
             )
 
 

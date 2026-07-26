@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.models.asset import Asset
-from app.schemas.asset import AssetCreate
+from app.schemas.asset import AssetCreate, AssetUpdate
 
 
 
@@ -14,7 +14,11 @@ def create_asset(
         hostname=asset.hostname,
         ip_address=asset.ip_address,
         operating_system=asset.operating_system,
-        criticality=asset.criticality
+        criticality=asset.criticality,
+        asset_type=asset.asset_type,
+        owner=asset.owner,
+        environment=asset.environment,
+        status=asset.status
     )
 
 
@@ -52,6 +56,86 @@ def get_asset(
         )
         .first()
     )
+
+
+
+def update_asset(
+    db: Session,
+    asset_id: int,
+    asset_data: AssetUpdate
+):
+
+    asset = get_asset(
+        db,
+        asset_id
+    )
+
+
+    if not asset:
+        return None
+
+
+    update_data = asset_data.model_dump(
+        exclude_unset=True
+    )
+
+
+    for key, value in update_data.items():
+
+        setattr(
+            asset,
+            key,
+            value
+        )
+
+
+    db.commit()
+
+    db.refresh(asset)
+
+
+    return asset
+
+
+
+def search_assets(
+    db: Session,
+    hostname: str | None = None,
+    ip_address: str | None = None
+):
+
+    query = db.query(Asset)
+
+
+    if hostname:
+
+        query = query.filter(
+            Asset.hostname.ilike(
+                f"%{hostname}%"
+            )
+        )
+
+
+    if ip_address:
+
+        query = query.filter(
+            Asset.ip_address.ilike(
+                f"%{ip_address}%"
+            )
+        )
+
+
+    return query.all()
+
+
+
+def count_assets(
+    db: Session
+):
+
+    return db.query(
+        Asset
+    ).count()
 
 
 

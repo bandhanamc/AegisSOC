@@ -27,6 +27,9 @@ __pycache__/
 *.egg-info/
 .eggs/
 
+.pytest_cache/
+.mypy_cache/
+
 
 # ==================================
 # Virtual Environments
@@ -61,9 +64,11 @@ yarn-error.log*
 dist/
 build/
 
+*.whl
+
 
 # ==================================
-# IDE
+# IDE / Editor
 # ==================================
 
 .vscode/*
@@ -72,6 +77,9 @@ build/
 !.vscode/settings.json
 
 .idea/
+
+*.swp
+*.swo
 
 
 # ==================================
@@ -96,12 +104,12 @@ apps/backend/logs/
 # Database Files
 # ==================================
 
-# Local databases
+# Local database files
 *.db
 *.sqlite
 *.sqlite3
 
-# Database backups only
+# Database backups
 *.dump
 *.backup
 *.sql.bak
@@ -118,7 +126,6 @@ apps/backend/temp/
 
 *.local
 *.bak
-*.swp
 
 
 # ==================================
@@ -130,6 +137,8 @@ apps/backend/temp/
 *.crt
 *.secret
 
+certs/
+
 
 # ==================================
 # Docker
@@ -137,7 +146,7 @@ apps/backend/temp/
 
 docker-compose.override.yml
 
-# PostgreSQL Docker images / OCI artifacts
+# PostgreSQL local volumes
 infrastructure/docker/postgres/
 
 
@@ -148,6 +157,8 @@ infrastructure/docker/postgres/
 .coverage
 htmlcov/
 
+coverage.xml
+
 
 # ==================================
 # AI Models
@@ -157,6 +168,8 @@ models/
 
 *.bin
 *.gguf
+*.pt
+*.onnx
 
 
 # ==================================
@@ -178,6 +191,8 @@ apps/backend/uploads/
 
 alembic/__pycache__/
 
+apps/backend/alembic/__pycache__/
+
 
 # ==================================
 # Runtime Data
@@ -185,3 +200,36 @@ alembic/__pycache__/
 
 data/runtime/
 data/uploads/
+
+apps/backend/data/runtime/
+apps/backend/data/uploads/
+
+
+# ==================================
+# MITRE ATT&CK Dataset
+# ==================================
+
+# Official MITRE Enterprise ATT&CK STIX dataset
+# Downloaded locally, not committed
+apps/backend/data/enterprise-attack.json
+
+
+# ==================================
+# Import / Export Files
+# ==================================
+
+imports/
+exports/
+
+apps/backend/imports/
+apps/backend/exports/
+
+
+# ==================================
+# Local Development Files
+# ==================================
+
+*.pid
+*.lock
+
+.DS_Store

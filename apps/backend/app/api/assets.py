@@ -19,6 +19,8 @@ from app.services.asset_service import (
     delete_asset
 )
 
+from app.services.audit_service import create_audit_log
+
 from app.dependencies.permissions import require_role
 
 
@@ -42,10 +44,24 @@ def add_asset(
     )
 ):
 
-    return create_asset(
+    new_asset = create_asset(
         db,
         asset
     )
+
+
+    create_audit_log(
+        db=db,
+        action="CREATE_ASSET",
+        resource="ASSET",
+        user_id=current_user.id,
+        resource_id=str(new_asset.id),
+        status="SUCCESS",
+        details=f"Created asset {new_asset.hostname}"
+    )
+
+
+    return new_asset
 
 
 
@@ -64,7 +80,20 @@ def list_assets(
     )
 ):
 
-    return get_assets(db)
+    assets = get_assets(db)
+
+
+    create_audit_log(
+        db=db,
+        action="VIEW_ASSETS",
+        resource="ASSET",
+        user_id=current_user.id,
+        status="SUCCESS",
+        details="Viewed asset list"
+    )
+
+
+    return assets
 
 
 
@@ -85,11 +114,24 @@ def search_asset_list(
     )
 ):
 
-    return search_assets(
+    assets = search_assets(
         db,
         hostname,
         ip_address
     )
+
+
+    create_audit_log(
+        db=db,
+        action="SEARCH_ASSETS",
+        resource="ASSET",
+        user_id=current_user.id,
+        status="SUCCESS",
+        details=f"Asset search executed hostname={hostname}, ip={ip_address}"
+    )
+
+
+    return assets
 
 
 
@@ -142,6 +184,17 @@ def read_asset(
         )
 
 
+    create_audit_log(
+        db=db,
+        action="VIEW_ASSET",
+        resource="ASSET",
+        user_id=current_user.id,
+        resource_id=str(asset.id),
+        status="SUCCESS",
+        details=f"Viewed asset {asset.hostname}"
+    )
+
+
     return asset
 
 
@@ -177,6 +230,17 @@ def edit_asset(
         )
 
 
+    create_audit_log(
+        db=db,
+        action="UPDATE_ASSET",
+        resource="ASSET",
+        user_id=current_user.id,
+        resource_id=str(updated_asset.id),
+        status="SUCCESS",
+        details=f"Updated asset {updated_asset.hostname}"
+    )
+
+
     return updated_asset
 
 
@@ -205,6 +269,17 @@ def remove_asset(
             status_code=404,
             detail="Asset not found"
         )
+
+
+    create_audit_log(
+        db=db,
+        action="DELETE_ASSET",
+        resource="ASSET",
+        user_id=current_user.id,
+        resource_id=str(asset.id),
+        status="SUCCESS",
+        details=f"Deleted asset {asset.hostname}"
+    )
 
 
     return {

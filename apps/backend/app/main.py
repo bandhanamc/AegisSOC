@@ -26,6 +26,8 @@ from app.api.uploads import router as upload_router
 
 from app.api.users import router as user_router
 
+from app.api.audit import router as audit_router
+
 from app.logging.logger import (
     app_logger,
     api_logger
@@ -53,6 +55,7 @@ app.include_router(vulnerability_router)
 app.include_router(scan_router)
 app.include_router(upload_router)
 app.include_router(user_router)
+app.include_router(audit_router)
 
 
 

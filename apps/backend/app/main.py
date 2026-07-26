@@ -24,6 +24,7 @@ from app.api.audit import router as audit_router
 from app.api.detection import router as detection_router
 from app.api.events import router as events_router
 from app.api.alerts import router as alerts_router
+from app.api.mitre_knowledge import router as mitre_router
 
 from app.logging.logger import (
     app_logger,
@@ -71,6 +72,8 @@ app.include_router(events_router)
 
 # Alerts
 app.include_router(alerts_router)
+
+app.include_router(mitre_router)
 
 
 @app.middleware("http")

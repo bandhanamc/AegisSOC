@@ -40,3 +40,4 @@ def get_db():
 
 
 from app.models.vulnerability import Vulnerability
+from app.models.mitre_technique import MitreTechnique

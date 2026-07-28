@@ -5,34 +5,38 @@ class OllamaClient:
     """
     Enterprise Ollama Client
 
-    Every AI module communicates with Ollama through this class.
+    Supports multiple models.
+
+    The ModelManager decides which model to use.
     """
 
     def __init__(
         self,
         base_url: str = "http://localhost:11434",
-        model: str = "mistral:7b",
-        timeout: int = 120,
+        timeout: int = 180,
     ):
+
         self.base_url = base_url
-        self.model = model
         self.timeout = timeout
 
-    def generate(self, prompt: str) -> str:
-        """
-        Generate a response from Ollama.
-        """
+    def generate(
+        self,
+        model: str,
+        prompt: str,
+    ) -> str:
 
         response = httpx.post(
             f"{self.base_url}/api/generate",
             json={
-                "model": self.model,
+                "model": model,
                 "prompt": prompt,
-                "stream": False
+                "stream": False,
             },
-            timeout=self.timeout
+            timeout=self.timeout,
         )
 
         response.raise_for_status()
 
-        return response.json()["response"]
+        data = response.json()
+
+        return data["response"]

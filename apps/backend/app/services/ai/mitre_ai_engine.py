@@ -1,15 +1,22 @@
 from app.core.llm.model_manager import ModelManager
 from app.core.llm.prompt_builder import PromptBuilder
 from app.core.llm.response_parser import ResponseParser
+from app.services.ai.mitre_retriever import MitreRetriever
 
 
 class MitreAIEngine:
 
-    def __init__(self):
+    def __init__(self, db):
+
+        self.db = db
 
         self.model = ModelManager()
 
-    def analyze(self, alert, candidates):
+        self.retriever = MitreRetriever(db)
+
+    def analyze(self, alert):
+
+        candidates = self.retriever.retrieve(alert)
 
         prompt = PromptBuilder.build_mitre_prompt(
             alert,

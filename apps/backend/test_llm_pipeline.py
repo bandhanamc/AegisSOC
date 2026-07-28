@@ -1,4 +1,6 @@
 from app.core.llm.prompt_builder import PromptBuilder
+from app.core.llm.model_manager import ModelManager
+from app.core.llm.response_parser import ResponseParser
 
 candidates = [
     {
@@ -16,16 +18,25 @@ candidates = [
         "name": "Command Obfuscation",
         "description": "Encoded command",
         "tactic": "Defense Evasion",
-        "score": 0.83,
+        "score": 0.88,
         "detection": "Base64",
         "platforms": "Windows",
         "data_sources": "Command Line"
     }
 ]
 
-print(
-    PromptBuilder.build_mitre_prompt(
-        "powershell.exe downloaded file with encoded command",
-        candidates
-    )
+prompt = PromptBuilder.build_mitre_prompt(
+    "powershell.exe downloaded file with encoded command",
+    candidates
 )
+
+response = ModelManager().ask(
+    task="mitre_mapping",
+    prompt=prompt
+)
+
+print("========== RAW RESPONSE ==========")
+print(response)
+
+print("\n========== PARSED ==========")
+print(ResponseParser.parse(response))

@@ -29,6 +29,10 @@ __pycache__/
 
 .pytest_cache/
 .mypy_cache/
+.pyre/
+.ruff_cache/
+
+.python-version
 
 
 # ==================================
@@ -104,12 +108,10 @@ apps/backend/logs/
 # Database Files
 # ==================================
 
-# Local database files
 *.db
 *.sqlite
 *.sqlite3
 
-# Database backups
 *.dump
 *.backup
 *.sql.bak
@@ -146,7 +148,6 @@ certs/
 
 docker-compose.override.yml
 
-# PostgreSQL local volumes
 infrastructure/docker/postgres/
 
 
@@ -155,21 +156,49 @@ infrastructure/docker/postgres/
 # ==================================
 
 .coverage
-htmlcov/
-
 coverage.xml
+
+htmlcov/
 
 
 # ==================================
-# AI Models
+# AI / LLM Models
 # ==================================
 
 models/
+hf_cache/
+ollama_models/
 
 *.bin
 *.gguf
 *.pt
 *.onnx
+*.safetensors
+
+
+# ==================================
+# FAISS Vector Database
+# ==================================
+
+*.faiss
+*.index
+*.npy
+*.npz
+*.pkl
+*.pickle
+
+app/ai/vector_store/index/
+app/ai/vector_store/cache/
+
+
+# ==================================
+# AI Runtime Cache
+# ==================================
+
+sentence_transformers/
+transformers_cache/
+
+app/ai/cache/
 
 
 # ==================================
@@ -178,10 +207,8 @@ models/
 
 reports/
 
-# Nessus reports
 *.nessus
 
-# Uploaded scan files
 apps/backend/uploads/
 
 
@@ -209,8 +236,6 @@ apps/backend/data/uploads/
 # MITRE ATT&CK Dataset
 # ==================================
 
-# Official MITRE Enterprise ATT&CK STIX dataset
-# Downloaded locally, not committed
 apps/backend/data/enterprise-attack.json
 
 
@@ -232,4 +257,17 @@ apps/backend/exports/
 *.pid
 *.lock
 
+
+# ==================================
+# Jupyter
+# ==================================
+
+.ipynb_checkpoints/
+
+
+# ==================================
+# Misc
+# ==================================
+
 .DS_Store
+Thumbs.db

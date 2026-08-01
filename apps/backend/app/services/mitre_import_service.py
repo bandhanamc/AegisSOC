@@ -4,31 +4,34 @@ import re
 from pathlib import Path
 
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from app.models.mitre_technique import MitreTechnique
 
 
+
 class MitreImportService:
+
 
     DATASET_PATH = Path(
         "data/enterprise-attack.json"
     )
 
 
-    @staticmethod
-    def clean_text(text):
 
-        if not text:
+    @staticmethod
+    def clean_text(text_value):
+
+        if not text_value:
             return ""
 
-        # Remove MITRE citation references
-        text = re.sub(
+        text_value = re.sub(
             r"\[\d+\]",
             "",
-            text
+            text_value
         )
 
-        return text.strip()
+        return text_value.strip()
 
 
 
@@ -40,10 +43,9 @@ class MitreImportService:
             []
         ):
 
-            if (
-                ref.get("source_name")
-                == "mitre-attack"
-            ):
+            if ref.get(
+                "source_name"
+            ) == "mitre-attack":
 
                 return ref.get(
                     "external_id"
@@ -58,19 +60,18 @@ class MitreImportService:
 
         tactics = []
 
-
         for phase in obj.get(
             "kill_chain_phases",
             []
         ):
 
-            name = phase.get(
+            phase_name = phase.get(
                 "phase_name"
             )
 
-            if name:
+            if phase_name:
                 tactics.append(
-                    name
+                    phase_name
                 )
 
 
@@ -81,13 +82,38 @@ class MitreImportService:
 
 
     @staticmethod
+    def remove_duplicates(
+        db: Session
+    ):
+
+        db.execute(
+            text(
+                """
+                DELETE FROM mitre_techniques
+                WHERE id NOT IN
+                (
+                    SELECT MIN(id)
+                    FROM mitre_techniques
+                    GROUP BY technique_id
+                )
+                """
+            )
+        )
+
+        db.commit()
+
+
+
+    @staticmethod
     def import_dataset(
         db: Session
     ):
 
 
-        imported = 0
+        inserted = 0
+        updated = 0
         skipped = 0
+
 
 
         with open(
@@ -95,7 +121,6 @@ class MitreImportService:
             "r",
             encoding="utf-8"
         ) as file:
-
 
             dataset = json.load(
                 file
@@ -109,7 +134,6 @@ class MitreImportService:
         ):
 
 
-            # Only ATT&CK techniques
             if obj.get(
                 "type"
             ) != "attack-pattern":
@@ -118,7 +142,6 @@ class MitreImportService:
 
 
 
-            # Ignore revoked techniques
             if obj.get(
                 "revoked"
             ):
@@ -137,85 +160,92 @@ class MitreImportService:
 
 
             if not technique_id:
+
                 continue
 
 
 
-            existing = (
-                db.query(
-                    MitreTechnique
-                )
-                .filter(
-                    MitreTechnique
-                    .technique_id
-                    ==
-                    technique_id
-                )
-                .first()
+            name = obj.get(
+                "name"
             )
+
+
+            description = (
+                MitreImportService
+                .clean_text(
+                    obj.get(
+                        "description"
+                    )
+                )
+            )
+
+
+            platform = ",".join(
+                obj.get(
+                    "x_mitre_platforms",
+                    []
+                )
+            )
+
+
+            tactic = (
+                MitreImportService
+                .extract_tactics(
+                    obj
+                )
+            )
+
+
+
+            existing = db.query(
+                MitreTechnique
+            ).filter(
+                MitreTechnique.technique_id
+                ==
+                technique_id
+            ).first()
+
 
 
             if existing:
 
-                skipped += 1
-                continue
+
+                existing.name = name
+
+                existing.description = description
+
+                existing.platform = platform
+
+                existing.tactic = tactic
 
 
-
-            technique = MitreTechnique(
-
-
-                technique_id=(
-                    technique_id
-                ),
+                updated += 1
 
 
-
-                name=(
-                    obj.get(
-                        "name"
-                    )
-                ),
+            else:
 
 
+                technique = MitreTechnique(
 
-                description=(
-                    MitreImportService
-                    .clean_text(
-                        obj.get(
-                            "description"
-                        )
-                    )
-                ),
+                    technique_id=technique_id,
 
+                    name=name,
 
+                    description=description,
 
-                platform=",".join(
-                    obj.get(
-                        "x_mitre_platforms",
-                        []
-                    )
-                ),
+                    platform=platform,
 
+                    tactic=tactic
 
-
-                tactic=(
-                    MitreImportService
-                    .extract_tactics(
-                        obj
-                    )
                 )
 
-            )
+
+                db.add(
+                    technique
+                )
 
 
-
-            db.add(
-                technique
-            )
-
-
-            imported += 1
+                inserted += 1
 
 
 
@@ -223,10 +253,24 @@ class MitreImportService:
 
 
 
+        # Cleanup duplicates after import
+
+        MitreImportService.remove_duplicates(
+            db
+        )
+
+
+
         return {
 
-            "imported":
-                imported,
+
+            "inserted":
+                inserted,
+
+
+            "updated":
+                updated,
+
 
             "skipped":
                 skipped

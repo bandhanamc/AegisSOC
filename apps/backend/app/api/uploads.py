@@ -4,11 +4,10 @@ from sqlalchemy.orm import Session
 import shutil
 import os
 
-
 from app.database.database import get_db
 from app.dependencies.auth import get_current_user
 
-from app.parsers.nessus_parser import parse_nessus_file
+from app.parsers.parser_factory import ParserFactory
 from app.services.nessus_import_service import import_findings
 
 
@@ -28,14 +27,18 @@ os.makedirs(
 
 
 
-@router.post("/nessus")
-def upload_nessus(
+@router.post("/scan")
+def upload_scan_report(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
 
+    file_path = None
+
     try:
+
+        # Save uploaded file
 
         file_path = os.path.join(
             UPLOAD_DIR,
@@ -43,7 +46,6 @@ def upload_nessus(
         )
 
 
-        # Save uploaded Nessus file
         with open(
             file_path,
             "wb"
@@ -55,25 +57,48 @@ def upload_nessus(
             )
 
 
-        # Parse Nessus XML
-        findings = parse_nessus_file(
+
+        # Select parser dynamically
+
+        try:
+
+            parser = ParserFactory.get_parser(
+                file.filename
+            )
+
+        except ValueError as e:
+
+            raise HTTPException(
+                status_code=400,
+                detail=str(e)
+            )
+
+
+
+        # Parse report
+
+        findings = parser(
             file_path
         )
+
 
 
         if not findings:
 
             raise HTTPException(
                 status_code=400,
-                detail="No findings found in Nessus file"
+                detail="No findings found in uploaded report"
             )
 
 
+
         # Import findings into database
+
         import_result = import_findings(
             db,
             findings
         )
+
 
 
         return {
@@ -82,13 +107,17 @@ def upload_nessus(
 
             "total_findings": len(findings),
 
-            "imported_into_database": import_result["imported"],
+            "imported_into_database":
+                import_result["imported"],
 
-            "duplicates_skipped": import_result["skipped"],
+            "duplicates_skipped":
+                import_result["skipped"],
 
-            "message": "Nessus report imported successfully",
+            "message":
+                "Security report imported successfully",
 
-            "sample": findings[:5]
+            "sample":
+                findings[:5]
 
         }
 
@@ -106,3 +135,13 @@ def upload_nessus(
             status_code=500,
             detail=str(e)
         )
+
+
+
+    finally:
+
+        # Remove uploaded file after processing
+
+        if file_path and os.path.exists(file_path):
+
+            os.remove(file_path)

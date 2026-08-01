@@ -1,8 +1,7 @@
 from sqlalchemy.orm import Session
 
-from app.ai.copilot.local_llm import LocalLLM
+from app.ai.core.service_manager import AIServiceManager
 from app.ai.copilot.prompt_builder import PromptBuilder
-from app.ai.faiss_mitre_mapper import FaissMitreMapper
 
 from app.models.vulnerability import Vulnerability
 
@@ -11,9 +10,7 @@ class CopilotService:
 
     def __init__(self):
 
-        self.llm = LocalLLM()
-
-        self.mapper = FaissMitreMapper()
+        self.ai = AIServiceManager()
 
         self.prompt = PromptBuilder()
 
@@ -27,25 +24,30 @@ class CopilotService:
 
     ):
 
-        vulnerability = db.query(
+        vulnerability = (
 
-            Vulnerability
+            db.query(Vulnerability)
 
-        ).filter(
+            .filter(Vulnerability.id == vulnerability_id)
 
-            Vulnerability.id == vulnerability_id
+            .first()
 
-        ).first()
+        )
 
         if vulnerability is None:
 
             return "Vulnerability not found."
 
-        mitre = self.mapper.map_vulnerability(
+        query = (
+            f"{vulnerability.title or ''}\n"
+            f"{vulnerability.description or ''}"
+        )
 
-            db,
+        embedding = self.ai.matcher.encode(query)
 
-            vulnerability,
+        mitre = self.ai.search.search(
+
+            embedding,
 
             top_k=5
 
@@ -61,7 +63,7 @@ class CopilotService:
 
         )
 
-        return self.llm.ask(
+        return self.ai.llm.ask(
 
             prompt
 

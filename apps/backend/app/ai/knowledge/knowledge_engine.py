@@ -29,17 +29,25 @@ class KnowledgeEngine:
         self.context_builder = ContextBuilder()
 
     def get_context(
+
         self,
+
         db: Session,
+
         vulnerability_id: int
+
     ):
 
         context = self.context_builder.build(
+
             db,
+
             vulnerability_id
+
         )
 
         if context is None:
+
             return None
 
         return {

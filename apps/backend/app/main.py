@@ -37,6 +37,7 @@ from app.api.mitre_mapping import router as mitre_mapping_router
 from app.api.copilot import router as copilot_router
 from app.api.detection import router as detection_router
 from app.api.v1.endpoints.investigation import router as investigation_router
+from app.api.v1.endpoints.correlation.router import router as correlation_router
 
 
 # ==============================
@@ -141,6 +142,10 @@ app.include_router(detection_router)
 
 app.include_router(
     investigation_router
+)
+
+app.include_router(
+    correlation_router
 )
 
 

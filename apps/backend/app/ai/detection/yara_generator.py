@@ -2,13 +2,13 @@ from app.ai.core.service_manager import AIServiceManager
 from app.ai.parser.output_parser import OutputParser
 
 
-class DetectionGenerator:
+class YaraGenerator:
 
     def __init__(self):
 
         self.ai = AIServiceManager()
 
-    def generate_sigma(
+    def generate_rule(
 
         self,
 
@@ -29,11 +29,9 @@ class DetectionGenerator:
         )
 
         prompt = f"""
-You are a Senior Detection Engineer.
+You are an expert malware detection engineer.
 
-Generate a production-ready Sigma rule.
-
-Vulnerability
+Generate a production-ready YARA rule.
 
 Title:
 {title}
@@ -41,19 +39,19 @@ Title:
 Description:
 {description}
 
-MITRE ATT&CK
-
+MITRE ATT&CK:
 {techniques}
 
 Requirements:
-
-- Return ONLY valid Sigma YAML.
+- Return ONLY valid YARA code.
 - Do NOT use markdown.
 - Do NOT use triple backticks.
-- Do NOT explain the rule.
-- Do NOT add comments.
-- Start directly with the Sigma title field.
-
+- Do NOT wrap the rule inside variables.
+- Start directly with the word 'rule'.
+- Include:
+    - meta section
+    - strings section
+    - condition section
 """
 
         response = self.ai.llm.ask(

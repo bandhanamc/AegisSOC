@@ -19,6 +19,7 @@ from app.services.detection_service import (
 
 from app.dependencies.permissions import require_role
 
+from app.ai.detection_engine.detection_engine import DetectionEngine
 
 
 router = APIRouter(
@@ -26,7 +27,58 @@ router = APIRouter(
     tags=["Detection Engine"]
 )
 
+engine = DetectionEngine()
 
+
+# ==========================================================
+# AI Detection Generation
+# ==========================================================
+
+@router.post("/generate")
+def generate_detection(
+
+    detection_type: str,
+
+    title: str,
+
+    description: str,
+
+    current_user=Depends(
+        require_role(
+            ["admin", "analyst"]
+        )
+    )
+
+):
+
+    mitre = [
+
+        {
+
+            "technique_id": "T1059",
+
+            "name": "Command and Scripting Interpreter"
+
+        }
+
+    ]
+
+    return engine.generate_detection(
+
+        detection_type,
+
+        title,
+
+        description,
+
+        mitre
+
+    )
+
+
+# ==========================================================
+# Detection Rule CRUD
+# ==========================================================
 
 @router.post(
     "/rules",
@@ -35,9 +87,9 @@ router = APIRouter(
 def create_rule(
     rule: DetectionRuleCreate,
     db: Session = Depends(get_db),
-    current_user = Depends(
+    current_user=Depends(
         require_role(
-            ["admin","analyst"]
+            ["admin", "analyst"]
         )
     )
 ):
@@ -48,16 +100,15 @@ def create_rule(
     )
 
 
-
 @router.get(
     "/rules",
     response_model=list[DetectionRuleResponse]
 )
 def list_rules(
     db: Session = Depends(get_db),
-    current_user = Depends(
+    current_user=Depends(
         require_role(
-            ["admin","analyst","viewer"]
+            ["admin", "analyst", "viewer"]
         )
     )
 ):
@@ -65,26 +116,24 @@ def list_rules(
     return get_detection_rules(db)
 
 
-
 @router.get(
     "/rules/{rule_id}",
     response_model=DetectionRuleResponse
 )
 def read_rule(
-    rule_id:int,
-    db:Session=Depends(get_db),
+    rule_id: int,
+    db: Session = Depends(get_db),
     current_user=Depends(
         require_role(
-            ["admin","analyst","viewer"]
+            ["admin", "analyst", "viewer"]
         )
     )
 ):
 
-    rule=get_detection_rule(
+    rule = get_detection_rule(
         db,
         rule_id
     )
-
 
     if not rule:
         raise HTTPException(
@@ -95,28 +144,26 @@ def read_rule(
     return rule
 
 
-
 @router.put(
     "/rules/{rule_id}",
     response_model=DetectionRuleResponse
 )
 def edit_rule(
-    rule_id:int,
-    rule:DetectionRuleUpdate,
-    db:Session=Depends(get_db),
+    rule_id: int,
+    rule: DetectionRuleUpdate,
+    db: Session = Depends(get_db),
     current_user=Depends(
         require_role(
-            ["admin","analyst"]
+            ["admin", "analyst"]
         )
     )
 ):
 
-    updated=update_detection_rule(
+    updated = update_detection_rule(
         db,
         rule_id,
         rule
     )
-
 
     if not updated:
         raise HTTPException(
@@ -127,13 +174,12 @@ def edit_rule(
     return updated
 
 
-
 @router.delete(
     "/rules/{rule_id}"
 )
 def remove_rule(
-    rule_id:int,
-    db:Session=Depends(get_db),
+    rule_id: int,
+    db: Session = Depends(get_db),
     current_user=Depends(
         require_role(
             ["admin"]
@@ -141,11 +187,10 @@ def remove_rule(
     )
 ):
 
-    deleted=delete_detection_rule(
+    deleted = delete_detection_rule(
         db,
         rule_id
     )
-
 
     if not deleted:
         raise HTTPException(
@@ -153,7 +198,6 @@ def remove_rule(
             detail="Detection rule not found"
         )
 
-
     return {
-        "message":"Detection rule deleted"
+        "message": "Detection rule deleted"
     }

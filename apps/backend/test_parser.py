@@ -1,15 +1,19 @@
-from app.core.llm.response_parser import ResponseParser
+from app.ai.parser.output_parser import OutputParser
 
-response = """
-{
-    "techniques":[
-        {
-            "technique_id":"T1059.001",
-            "confidence":"HIGH",
-            "reasoning":"PowerShell execution"
-        }
-    ]
-}
-"""
+sample = (
+    "```yara\n"
+    "rule Test\n"
+    "{\n"
+    "    meta:\n"
+    "        author = \"AegisSOC\"\n"
+    "\n"
+    "    strings:\n"
+    "        $a = \"powershell\"\n"
+    "\n"
+    "    condition:\n"
+    "        $a\n"
+    "}\n"
+    "```"
+)
 
-print(ResponseParser.parse(response))
+print(OutputParser.clean(sample))

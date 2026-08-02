@@ -17,12 +17,10 @@ class AgentExecutor:
         context
     ):
 
-
         results = {}
 
 
         for step in plan:
-
 
             try:
 
@@ -34,9 +32,8 @@ class AgentExecutor:
 
             except Exception as e:
 
-
                 results[step] = {
-                    "error":str(e)
+                    "error": str(e)
                 }
 
 

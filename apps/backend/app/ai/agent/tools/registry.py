@@ -10,48 +10,57 @@ class AgentToolRegistry:
     def __init__(self):
 
         self.investigation = InvestigationEngine()
-
         self.threat_hunter = ThreatHunter()
-
         self.memory = MemoryEngine()
-
         self.copilot = CopilotEngine()
 
 
 
-    def execute(self, tool_name, context):
+    def investigate_mitre(self, alert):
+
+        vulnerability_id = alert.get(
+            "vulnerability_id",
+            0
+        )
 
 
-        if tool_name == "investigate_mitre":
-
-            return self.investigation.investigate(
-                context
-            )
+        return self.investigation.investigate(
+            vulnerability_id
+        )
 
 
-        elif tool_name == "threat_hunt":
 
-            return self.threat_hunter.hunt(
-                context
-            )
+    def threat_hunt(self, alert):
 
-
-        elif tool_name == "retrieve_memory":
-
-            return self.memory.search(
-                context.get("alert")
-            )
+        return self.threat_hunter.hunt(
+            alert
+        )
 
 
-        elif tool_name == "generate_response":
 
-            return self.copilot.analyze(
-                context
-            )
+    def retrieve_memory(self, alert):
+
+        query = f"""
+        Alert Type:
+        {alert.get('type')}
+
+        MITRE:
+        {alert.get('mitre')}
+
+        Host:
+        {alert.get('host')}
+        """
 
 
-        else:
+        return self.memory.search(
+            query
+        )
 
-            return {
-                "error": "Unknown tool"
-            }
+
+
+    def generate_response(self, alert, context):
+
+        return self.copilot.analyze(
+            alert,
+            context
+        )

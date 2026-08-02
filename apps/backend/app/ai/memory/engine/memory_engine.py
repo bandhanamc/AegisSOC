@@ -39,9 +39,9 @@ class MemoryEngine:
 
         return {
 
-            "status":"stored",
+            "status": "stored",
 
-            "id":document_id
+            "id": document_id
 
         }
 
@@ -60,4 +60,23 @@ class MemoryEngine:
 
         return self.vector.search(
             vector
+        )
+
+
+
+    #
+    # Agent compatibility method
+    #
+    # Used by Agent Executor
+    #
+
+
+    def search(
+        self,
+        query
+    ):
+
+
+        return self.recall(
+            query
         )

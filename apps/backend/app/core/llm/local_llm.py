@@ -9,10 +9,19 @@ class LocalLLM:
 
     def __init__(self):
 
-        self.url = os.getenv(
-            "OLLAMA_URL",
-            "http://127.0.0.1:11434/api/generate"
+        self.base_url = os.getenv(
+            "OLLAMA_BASE_URL",
+            "http://127.0.0.1:11434"
         )
+
+
+        self.generate_url = os.getenv(
+            "OLLAMA_URL",
+            f"{self.base_url}/api/generate"
+        )
+
+
+        self.tags_url = f"{self.base_url}/api/tags"
 
 
         self.model = os.getenv(
@@ -33,10 +42,15 @@ class LocalLLM:
     def ask(
         self,
         prompt: str
-    ):
+    ) -> str:
         """
         Send prompt to local Ollama model.
-        Used for normal AI responses.
+
+        Used by:
+        - SOC Copilot
+        - Investigation Engine
+        - Threat Hunting
+        - Agentic AI
         """
 
 
@@ -51,11 +65,13 @@ class LocalLLM:
         }
 
 
+
         try:
+
 
             response = requests.post(
 
-                self.url,
+                self.generate_url,
 
                 json=payload,
 
@@ -68,18 +84,19 @@ class LocalLLM:
 
 
 
-            result = response.json()
+            data = response.json()
 
 
 
-            if "response" not in result:
+            if "response" not in data:
 
                 raise Exception(
-                    "Invalid Ollama response format"
+                    "Unexpected Ollama response format"
                 )
 
 
-            return result["response"]
+
+            return data["response"]
 
 
 
@@ -88,8 +105,8 @@ class LocalLLM:
 
             raise Exception(
 
-                "Unable to connect to Ollama service. "
-                "Make sure Ollama is running."
+                "Ollama service unavailable. "
+                "Start Ollama before running AegisSOC AI engine."
 
             )
 
@@ -100,7 +117,18 @@ class LocalLLM:
 
             raise Exception(
 
-                "Ollama request timeout exceeded."
+                "Ollama request timeout."
+
+            )
+
+
+
+        except requests.exceptions.HTTPError as e:
+
+
+            raise Exception(
+
+                f"Ollama HTTP error: {str(e)}"
 
             )
 
@@ -117,19 +145,20 @@ class LocalLLM:
 
 
 
+
+
     def generate(
         self,
         prompt: str
-    ):
+    ) -> str:
         """
         Compatibility wrapper.
 
-        Used by:
-        - Threat Hunting Engine
+        Required by:
+        - Agent Executor
+        - Threat Hunter
         - Investigation Engine
         - Correlation Engine
-        - Detection Intelligence
-        - SOC Copilot
         """
 
 
@@ -139,13 +168,18 @@ class LocalLLM:
 
 
 
+
+
     def stream(
         self,
         prompt: str
     ):
         """
         Streaming response from Ollama.
-        Used for future realtime SOC assistant.
+
+        Future use:
+        - SOC realtime assistant
+        - Analyst chat interface
         """
 
 
@@ -166,7 +200,7 @@ class LocalLLM:
 
             response = requests.post(
 
-                self.url,
+                self.generate_url,
 
                 json=payload,
 
@@ -191,7 +225,7 @@ class LocalLLM:
 
 
                 data = json.loads(
-                    line
+                    line.decode("utf-8")
                 )
 
 
@@ -213,7 +247,7 @@ class LocalLLM:
 
             raise Exception(
 
-                "Unable to connect to Ollama service."
+                "Ollama service unavailable."
 
             )
 
@@ -241,11 +275,13 @@ class LocalLLM:
 
 
 
+
+
     def health_check(
         self
-    ):
+    ) -> dict:
         """
-        Check Ollama availability.
+        Check Ollama availability and model status.
         """
 
 
@@ -254,7 +290,7 @@ class LocalLLM:
 
             response = requests.get(
 
-                "http://127.0.0.1:11434/api/tags",
+                self.tags_url,
 
                 timeout=10
 
@@ -265,11 +301,51 @@ class LocalLLM:
 
 
 
+            models = response.json()
+
+
+
+            available_models = []
+
+
+            for model in models.get(
+                "models",
+                []
+            ):
+
+                available_models.append(
+                    model.get("name")
+                )
+
+
+
             return {
+
 
                 "status": "healthy",
 
-                "model": self.model
+
+                "model": self.model,
+
+
+                "available_models": available_models
+
+
+            }
+
+
+
+        except requests.exceptions.ConnectionError:
+
+
+            return {
+
+
+                "status": "unhealthy",
+
+
+                "error": "Ollama service not running"
+
 
             }
 
@@ -280,8 +356,11 @@ class LocalLLM:
 
             return {
 
+
                 "status": "unhealthy",
 
+
                 "error": str(e)
+
 
             }

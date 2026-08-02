@@ -41,6 +41,8 @@ from app.api.v1.endpoints.correlation.router import router as correlation_router
 from app.api.v1.endpoints.threat_hunting.router import router as threat_hunting_router
 from app.api.v1.endpoints.copilot.router import router as copilot_router
 from app.api.v1.endpoints.memory.router import router as memory_router
+from app.api.v1.endpoints.agent.router import router as agent_router
+
 
 
 # ==============================
@@ -163,6 +165,9 @@ app.include_router(
     memory_router
 )
 
+app.include_router(
+    agent_router
+)
 
 # ==============================
 # REQUEST LOGGING

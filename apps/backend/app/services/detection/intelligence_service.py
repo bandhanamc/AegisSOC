@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.services.mitre_mapping_service import MitreMappingService
 from app.ai.detection_engine.detection_engine import DetectionEngine
 from app.services.detection.audit import DetectionAudit
-
+from app.services.detection.repository import RuleRepository
 
 class DetectionIntelligenceService:
 
@@ -12,6 +12,7 @@ class DetectionIntelligenceService:
         self.mitre = MitreMappingService()
         self.engine = DetectionEngine()
         self.audit = DetectionAudit()
+        self.repository = RuleRepository()
 
     def analyze_rule(
         self,

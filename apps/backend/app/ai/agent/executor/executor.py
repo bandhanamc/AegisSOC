@@ -1,21 +1,43 @@
+from app.ai.agent.tools.registry import AgentToolRegistry
+
+
+
 class AgentExecutor:
 
 
-    def execute(
+    def __init__(self):
+
+        self.tools = AgentToolRegistry()
+
+
+
+    def execute_plan(
         self,
-        plan
+        plan,
+        context
     ):
 
 
-        results={}
+        results = {}
 
 
-        for action in plan:
+        for step in plan:
 
 
-            results[action]=(
-                "pending"
-            )
+            try:
+
+                results[step] = self.tools.execute(
+                    step,
+                    context
+                )
+
+
+            except Exception as e:
+
+
+                results[step] = {
+                    "error":str(e)
+                }
 
 
         return results

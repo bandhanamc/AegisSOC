@@ -1,5 +1,4 @@
 from app.ai.agent.planner.planner import AgentPlanner
-
 from app.ai.agent.executor.executor import AgentExecutor
 
 
@@ -9,9 +8,9 @@ class AgentOrchestrator:
 
     def __init__(self):
 
-        self.planner=AgentPlanner()
+        self.planner = AgentPlanner()
 
-        self.executor=AgentExecutor()
+        self.executor = AgentExecutor()
 
 
 
@@ -21,13 +20,14 @@ class AgentOrchestrator:
     ):
 
 
-        plan=self.planner.create_plan(
+        plan = self.planner.create_plan(
             alert
         )
 
 
-        execution=self.executor.execute(
-            plan
+        execution = self.executor.execute_plan(
+            plan,
+            alert
         )
 
 

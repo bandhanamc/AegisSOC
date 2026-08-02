@@ -10,6 +10,9 @@ from app.schemas.detection.rule_schema import DetectionRuleUpdate
 
 from app.services import detection_service
 
+from app.models.detection_rule_version import DetectionRuleVersion
+
+
 router = APIRouter(
     prefix="/api/v1/detection",
     tags=["Detection Rules"]
@@ -28,12 +31,16 @@ def create_rule(
     )
 
 
+
 @router.get("/rules")
 def list_rules(
     db: Session = Depends(get_db)
 ):
 
-    return detection_service.get_detection_rules(db)
+    return detection_service.get_detection_rules(
+        db
+    )
+
 
 
 @router.get("/rules/{rule_id}")
@@ -46,6 +53,7 @@ def get_rule(
         db,
         rule_id
     )
+
 
 
 @router.put("/rules/{rule_id}")
@@ -62,6 +70,7 @@ def update_rule(
     )
 
 
+
 @router.delete("/rules/{rule_id}")
 def delete_rule(
     rule_id: int,
@@ -71,4 +80,25 @@ def delete_rule(
     return detection_service.delete_detection_rule(
         db,
         rule_id
+    )
+
+
+
+@router.get("/rules/{rule_id}/history")
+def rule_history(
+    rule_id: int,
+    db: Session = Depends(get_db)
+):
+
+    return (
+        db.query(
+            DetectionRuleVersion
+        )
+        .filter(
+            DetectionRuleVersion.rule_id == rule_id
+        )
+        .order_by(
+            DetectionRuleVersion.version.desc()
+        )
+        .all()
     )

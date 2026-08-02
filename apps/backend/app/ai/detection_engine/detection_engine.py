@@ -1,8 +1,8 @@
 from app.ai.detection_engine.generators.sigma_generator import SigmaGenerator
 from app.ai.detection_engine.generators.yara_generator import YaraGenerator
 from app.ai.detection_engine.generators.kql_generator import KQLGenerator
-from app.ai.detection_engine.generators.spl_generator import SPLGenerator
 from app.ai.detection_engine.generators.eql_generator import EQLGenerator
+from app.ai.detection_engine.generators.spl_generator import SPLGenerator
 
 
 class DetectionEngine:
@@ -10,49 +10,28 @@ class DetectionEngine:
     def __init__(self):
 
         self.generators = {
-
             "sigma": SigmaGenerator(),
-
             "yara": YaraGenerator(),
-
             "kql": KQLGenerator(),
-
+            "eql": EQLGenerator(),
             "spl": SPLGenerator(),
-
-            "eql": EQLGenerator()
-
         }
 
-    def generate_detection(
-
+    def generate(
         self,
-
-        detection_type: str,
-
+        rule_type: str,
         title: str,
-
         description: str,
-
-        mitre=None
-
     ):
 
-        detection_type = detection_type.lower()
+        generator = self.generators.get(rule_type.lower())
 
-        if detection_type not in self.generators:
-
+        if generator is None:
             raise ValueError(
-                f"Unsupported detection type: {detection_type}"
+                f"Unsupported rule type: {rule_type}"
             )
 
-        return self.generators[
-            detection_type
-        ].generate(
-
-            title,
-
-            description,
-
-            mitre
-
+        return generator.generate(
+            title=title,
+            description=description,
         )

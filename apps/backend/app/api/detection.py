@@ -1,104 +1,51 @@
-from fastapi import APIRouter
-from fastapi import Depends
+from fastapi import APIRouter, Depends
 
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
 
-from app.schemas.detection.rule_schema import DetectionRuleCreate
-from app.schemas.detection.rule_schema import DetectionRuleUpdate
-
-from app.services import detection_service
-
-from app.models.detection_rule_version import DetectionRuleVersion
-
-
-router = APIRouter(
-    prefix="/api/v1/detection",
-    tags=["Detection Rules"]
+from app.services.detection.intelligence_service import (
+    DetectionIntelligenceService
 )
 
 
-@router.post("/rules")
-def create_rule(
-    rule: DetectionRuleCreate,
+
+router = APIRouter(
+
+    prefix="/api/v1/detection",
+
+    tags=["AI Detection"]
+
+)
+
+
+
+service = DetectionIntelligenceService()
+
+
+
+@router.post("/intelligence")
+def analyze_detection(
+
+    rule_type: str,
+
+    title: str,
+
+    description: str,
+
     db: Session = Depends(get_db)
+
 ):
 
-    return detection_service.create_detection_rule(
+
+    return service.analyze_rule(
+
         db,
-        rule
-    )
 
+        rule_type,
 
+        title,
 
-@router.get("/rules")
-def list_rules(
-    db: Session = Depends(get_db)
-):
+        description
 
-    return detection_service.get_detection_rules(
-        db
-    )
-
-
-
-@router.get("/rules/{rule_id}")
-def get_rule(
-    rule_id: int,
-    db: Session = Depends(get_db)
-):
-
-    return detection_service.get_detection_rule(
-        db,
-        rule_id
-    )
-
-
-
-@router.put("/rules/{rule_id}")
-def update_rule(
-    rule_id: int,
-    rule: DetectionRuleUpdate,
-    db: Session = Depends(get_db)
-):
-
-    return detection_service.update_detection_rule(
-        db,
-        rule_id,
-        rule
-    )
-
-
-
-@router.delete("/rules/{rule_id}")
-def delete_rule(
-    rule_id: int,
-    db: Session = Depends(get_db)
-):
-
-    return detection_service.delete_detection_rule(
-        db,
-        rule_id
-    )
-
-
-
-@router.get("/rules/{rule_id}/history")
-def rule_history(
-    rule_id: int,
-    db: Session = Depends(get_db)
-):
-
-    return (
-        db.query(
-            DetectionRuleVersion
-        )
-        .filter(
-            DetectionRuleVersion.rule_id == rule_id
-        )
-        .order_by(
-            DetectionRuleVersion.version.desc()
-        )
-        .all()
     )

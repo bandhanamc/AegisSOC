@@ -40,6 +40,7 @@ MITRE:
 
 Requirements
 
+
 Generate valid Sigma YAML.
 
 Use Windows logsource if applicable.

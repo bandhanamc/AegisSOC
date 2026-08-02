@@ -1,85 +1,58 @@
-from app.ai.detection.detection_generator import DetectionGenerator
-from app.ai.detection.yara_generator import YaraGenerator
-from app.ai.validator.detection_validator import DetectionValidator
+from app.ai.detection_engine.generators.sigma_generator import SigmaGenerator
+from app.ai.detection_engine.generators.yara_generator import YaraGenerator
+from app.ai.detection_engine.generators.kql_generator import KQLGenerator
+from app.ai.detection_engine.generators.spl_generator import SPLGenerator
+from app.ai.detection_engine.generators.eql_generator import EQLGenerator
 
 
 class DetectionEngine:
 
     def __init__(self):
 
-        self.sigma = DetectionGenerator()
-        self.yara = YaraGenerator()
+        self.generators = {
+
+            "sigma": SigmaGenerator(),
+
+            "yara": YaraGenerator(),
+
+            "kql": KQLGenerator(),
+
+            "spl": SPLGenerator(),
+
+            "eql": EQLGenerator()
+
+        }
 
     def generate_detection(
 
         self,
 
-        detection_type,
+        detection_type: str,
 
-        title,
+        title: str,
 
-        description,
+        description: str,
 
-        mitre
+        mitre=None
 
     ):
 
         detection_type = detection_type.lower()
 
-        if detection_type == "sigma":
+        if detection_type not in self.generators:
 
-            rule = self.sigma.generate_sigma(
-
-                title,
-
-                description,
-
-                mitre
-
+            raise ValueError(
+                f"Unsupported detection type: {detection_type}"
             )
 
-            validation = DetectionValidator.validate_sigma(
+        return self.generators[
+            detection_type
+        ].generate(
 
-                rule
+            title,
 
-            )
+            description,
 
-            return {
-
-                "rule": rule,
-
-                "validation": validation
-
-            }
-
-        if detection_type == "yara":
-
-            rule = self.yara.generate_rule(
-
-                title,
-
-                description,
-
-                mitre
-
-            )
-
-            validation = DetectionValidator.validate_yara(
-
-                rule
-
-            )
-
-            return {
-
-                "rule": rule,
-
-                "validation": validation
-
-            }
-
-        raise Exception(
-
-            f"Unsupported detection type: {detection_type}"
+            mitre
 
         )

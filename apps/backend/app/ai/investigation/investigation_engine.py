@@ -1,5 +1,6 @@
 from app.ai.knowledge.knowledge_engine import KnowledgeEngine
 from app.ai.copilot.local_llm import LocalLLM
+from app.ai.investigation.context import InvestigationContextBuilder
 
 
 class InvestigationEngine:
@@ -8,6 +9,9 @@ class InvestigationEngine:
     def __init__(self):
 
         self.knowledge = KnowledgeEngine()
+
+        self.context_builder = InvestigationContextBuilder()
+
         self.llm = LocalLLM()
 
 
@@ -19,20 +23,32 @@ class InvestigationEngine:
     ):
 
 
-        context = self.knowledge.get_context(
+        raw_context = self.knowledge.get_context(
             db,
             vulnerability_id
         )
 
 
+        if raw_context is None:
+
+            return {
+                "error":
+                    "Vulnerability context not found"
+            }
+
+
+        context = self.context_builder.build(
+            raw_context
+        )
+
+
         prompt = f"""
+
 You are a Senior SOC Incident Response Analyst.
 
-Analyze the following vulnerability context.
+Analyze this security finding.
 
-==============================
-VULNERABILITY CONTEXT
-==============================
+Security Context:
 
 {context}
 
@@ -41,33 +57,38 @@ Generate a professional SOC investigation report.
 
 Include:
 
-## Executive Summary
+1. Executive Summary
 
-## Vulnerability Analysis
+2. Vulnerability Analysis
 
-## Technical Details
+3. Affected Asset Details
 
-## MITRE ATT&CK Analysis
+4. MITRE ATT&CK Analysis
 
-## Attack Path
+5. Attack Scenario
 
-## Threat Actor Perspective
+6. Threat Actor Perspective
 
-## Business Impact
+7. Business Impact
 
-## Detection Opportunities
+8. Detection Opportunities
 
-## Containment Actions
+9. Containment Actions
 
-## Eradication Steps
+10. Eradication Steps
 
-## Recovery Steps
+11. Recovery Plan
 
-## SOC Analyst Recommendations
+12. SOC Analyst Recommendations
 
 
-Use clear security analyst language.
-Return Markdown format.
+Rules:
+
+- Use only provided information.
+- Do not invent CVEs.
+- Do not invent affected systems.
+- Provide actionable SOC recommendations.
+
 """
 
 
@@ -77,7 +98,14 @@ Return Markdown format.
 
 
         return {
-            "vulnerability_id": vulnerability_id,
-            "context": context,
-            "investigation_report": report
+
+            "vulnerability_id":
+                vulnerability_id,
+
+            "context":
+                context,
+
+            "investigation_report":
+                report
+
         }

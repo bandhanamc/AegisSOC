@@ -1,21 +1,43 @@
-from app.database.database import SessionLocal
+import requests
 
-from app.ai.copilot.copilot_service import CopilotService
 
-db = SessionLocal()
 
-copilot = CopilotService()
+url="http://127.0.0.1:8000/api/v1/copilot/ask"
 
-print(
 
-    copilot.explain_vulnerability(
 
-        db,
+payload={
 
-        1102
+"question":
+"Investigate suspicious PowerShell execution",
 
-    )
+"context":
+
+{
+
+"host":"qa3app02",
+
+"mitre":"T1059.001",
+
+"alert":
+"Suspicious PowerShell Execution"
+
+}
+
+}
+
+
+
+response=requests.post(
+
+url,
+
+json=payload
 
 )
 
-db.close()
+
+
+print(response.status_code)
+
+print(response.json())

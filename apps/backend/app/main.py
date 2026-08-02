@@ -39,6 +39,7 @@ from app.api.detection import router as detection_router
 from app.api.v1.endpoints.investigation import router as investigation_router
 from app.api.v1.endpoints.correlation.router import router as correlation_router
 from app.api.v1.endpoints.threat_hunting.router import router as threat_hunting_router
+from app.api.v1.endpoints.copilot.router import router as copilot_router
 
 
 # ==============================
@@ -151,6 +152,10 @@ app.include_router(
 
 app.include_router(
     threat_hunting_router
+)
+
+app.include_router(
+    copilot_router
 )
 
 
